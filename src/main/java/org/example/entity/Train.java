@@ -1,9 +1,21 @@
 package org.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 import java.sql.Time;
 import java.util.List;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Train {
 
     private String trainId;
@@ -55,24 +67,4 @@ public class Train {
     public void setStations(List<String> stations) {
         this.stations = stations;
     }
-
-    public Train(String trainId, String trainNo, List<List<Integer>> seats, Map<String, Time> stationTime, List<String> stations) {
-        this.trainId = trainId;
-        this.trainNo = trainNo;
-        this.seats = seats;
-        this.stationTime = stationTime;
-        this.stations = stations;
-    }
-
-    @Override
-    public String toString() {
-        return "Train{" +
-                "trainId='" + trainId + '\'' +
-                ", trainNo='" + trainNo + '\'' +
-                ", seats=" + seats +
-                ", stationTime=" + stationTime +
-                ", stations=" + stations +
-                '}';
-    }
 }
-

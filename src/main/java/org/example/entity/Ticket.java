@@ -1,7 +1,14 @@
 package org.example.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import java.util.Date;
 
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class Ticket {
     private String ticketID;
 
@@ -14,6 +21,14 @@ public class Ticket {
     private Date dateOfTravel;
 
     private Train train;
+
+    public Ticket(){}
+
+
+    public String getTicketInfo(){
+        return String.format("Ticket ID: %s belongs to User %s from %s to %s on %s", ticketID, userId, source, destination, dateOfTravel);
+    }
+
 
     public String getTicketID() {
         return ticketID;
@@ -70,17 +85,5 @@ public class Ticket {
         this.destination = destination;
         this.dateOfTravel = dateOfTravel;
         this.train = train;
-    }
-
-    @Override
-    public String toString() {
-        return "Ticket{" +
-                "ticketID='" + ticketID + '\'' +
-                ", userId='" + userId + '\'' +
-                ", source='" + source + '\'' +
-                ", destination='" + destination + '\'' +
-                ", dateOfTravel=" + dateOfTravel +
-                ", train=" + train +
-                '}';
     }
 }
