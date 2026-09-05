@@ -7,28 +7,37 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class User {
 
     private String name;
     private String hashedPassword;
-    private  String Password;
+    private String Password;
     private List<Ticket> ticketsBooked;
     private String userId;
 
+    // Default constructor - required by Jackson
     public User() {
     }
 
-    public User(String name, String hashedPassword,
-                List<Ticket> ticketsBooked, String userId) {
+    // Constructor for signup/login
+    public User(String name, String password) {
+        this.name = name;
+        this.Password = password;
+        this.ticketsBooked = new ArrayList<>();
+    }
+
+    // Constructor for existing user data
+    public User(String name,
+                String hashedPassword,
+                List<Ticket> ticketsBooked,
+                String userId) {
+
         this.name = name;
         this.hashedPassword = hashedPassword;
         this.ticketsBooked = ticketsBooked;
         this.userId = userId;
-    }
-
-    public <E> User(String nameToLogin, String passwordToLogin, Object o, ArrayList<E> es, String string) {
     }
 
     public String getName() {
@@ -45,6 +54,14 @@ public class User {
 
     public void setHashedPassword(String hashedPassword) {
         this.hashedPassword = hashedPassword;
+    }
+
+    public String getPassword() {
+        return Password;
+    }
+
+    public void setPassword(String password) {
+        this.Password = password;
     }
 
     public List<Ticket> getTicketsBooked() {
@@ -64,6 +81,7 @@ public class User {
     }
 
     public void printTickets() {
+
         if (ticketsBooked == null || ticketsBooked.isEmpty()) {
             System.out.println("No tickets booked.");
             return;
@@ -73,12 +91,5 @@ public class User {
             System.out.println(ticket.getTicketInfo());
         }
     }
-
-    public String getPassword() {
-        return Password;
-    }
-
-    public void setPassword(String password) {
-        Password = password;
-    }
 }
+

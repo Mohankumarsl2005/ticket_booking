@@ -6,9 +6,15 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.Getter;
+
+@Getter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+
 public class Ticket {
     private String ticketID;
 
@@ -30,48 +36,24 @@ public class Ticket {
     }
 
 
-    public String getTicketID() {
-        return ticketID;
-    }
-
     public void setTicketID(String ticketID) {
         this.ticketID = ticketID;
-    }
-
-    public String getUserId() {
-        return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public String getSource() {
-        return source;
-    }
-
     public void setSource(String source) {
         this.source = source;
-    }
-
-    public String getDestination() {
-        return destination;
     }
 
     public void setDestination(String destination) {
         this.destination = destination;
     }
 
-    public Date getDateOfTravel() {
-        return dateOfTravel;
-    }
-
     public void setDateOfTravel(Date dateOfTravel) {
         this.dateOfTravel = dateOfTravel;
-    }
-
-    public Train getTrain() {
-        return train;
     }
 
     public void setTrain(Train train) {

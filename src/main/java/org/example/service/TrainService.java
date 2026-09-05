@@ -7,145 +7,327 @@ import org.example.entity.Train;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class TrainService {
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String TRAIN_DB_PATH =
+            "localDb/trains.json";
+
     private List<Train> trainList;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static final String TRAIN_DB_PATH = "localDb/trains.json";
-
     public TrainService() throws IOException {
+        loadTrainListFromFile();
+    }
 
-        File trains = new File(TRAIN_DB_PATH);
+    // =========================
+    // LOAD TRAINS
+    // =========================
 
-        if (!trains.exists()) {
-            System.out.println("trains.json not found. Creating new train list.");
+    private void loadTrainListFromFile() throws IOException {
+
+        File trainFile = new File(TRAIN_DB_PATH);
+
+        System.out.println(
+                "Loading trains from: " +
+                        trainFile.getAbsolutePath()
+        );
+
+        // Create folder if it doesn't exist
+        if (trainFile.getParentFile() != null) {
+            trainFile.getParentFile().mkdirs();
+        }
+
+        // If file doesn't exist
+        if (!trainFile.exists()) {
+
+            System.out.println(
+                    "trains.json not found. Creating default train."
+            );
 
             trainList = new ArrayList<>();
 
-            trains.getParentFile().mkdirs();
+            createDefaultTrain();
 
-            objectMapper.writeValue(trains, trainList);
+            saveTrainList();
 
             return;
         }
 
+        // Read file
         trainList = objectMapper.readValue(
-                trains,
+                trainFile,
                 new TypeReference<List<Train>>() {}
         );
 
+        // If JSON contains null
         if (trainList == null) {
             trainList = new ArrayList<>();
         }
+
+        // IMPORTANT:
+        // If JSON is [] create a default train
+        if (trainList.isEmpty()) {
+
+            System.out.println(
+                    "trains.json is empty. Creating default train."
+            );
+
+            createDefaultTrain();
+
+            saveTrainList();
+        }
+
+        System.out.println(
+                "Total trains loaded: " +
+                        trainList.size()
+        );
+
+        for (Train train : trainList) {
+
+            if (train == null) {
+                continue;
+            }
+
+            System.out.println(
+                    "Train: " +
+                            train.getTrainNo() +
+                            " | Stations: " +
+                            train.getStations()
+            );
+        }
     }
+
+    // =========================
+    // DEFAULT TRAIN
+    // =========================
+
+    private void createDefaultTrain() {
+
+        Train train = new Train();
+
+        train.setTrainId("bacs");
+
+        train.setTrainNo("12345");
+
+        train.setSeats(
+                Arrays.asList(
+                        new ArrayList<>(Arrays.asList(
+                                0, 0, 0, 0, 0, 0
+                        )),
+                        new ArrayList<>(Arrays.asList(
+                                0, 0, 0, 0, 0, 0
+                        )),
+                        new ArrayList<>(Arrays.asList(
+                                0, 0, 0, 0, 0, 0
+                        )),
+                        new ArrayList<>(Arrays.asList(
+                                0, 0, 0, 0, 0, 0
+                        ))
+                )
+        );
+
+        train.setStations(
+                Arrays.asList(
+                        "bangalore",
+                        "jaipur",
+                        "delhi"
+                )
+        );
+
+        train.setStationTimes(
+                new java.util.HashMap<String, String>() {{
+                    put("bangalore", "13:50:00");
+                    put("jaipur", "16:50:00");
+                    put("delhi", "20:50:00");
+                }}
+        );
+
+        trainList.add(train);
+
+        System.out.println(
+                "Default train created: 12345"
+        );
+    }
+
+    // =========================
+    // SEARCH TRAINS
+    // =========================
 
     public List<Train> searchTrains(
             String source,
-            String destination
-    ) {
+            String destination) {
 
-        return trainList.stream()
-                .filter(train -> validTrain(train, source, destination))
-                .collect(Collectors.toList());
-    }
+        List<Train> result =
+                new ArrayList<>();
 
-    public void addTrain(Train newTrain) {
+        if (source == null ||
+                destination == null) {
 
-        Optional<Train> existingTrain = trainList.stream()
-                .filter(train ->
-                        train.getTrainId()
-                                .equalsIgnoreCase(newTrain.getTrainId())
-                )
-                .findFirst();
-
-        if (existingTrain.isPresent()) {
-
-            updateTrain(newTrain);
-
-        } else {
-
-            trainList.add(newTrain);
-
-            saveTrainListToFile();
-        }
-    }
-
-    public void updateTrain(Train updatedTrain) {
-
-        OptionalInt index = IntStream.range(0, trainList.size())
-                .filter(i ->
-                        trainList.get(i)
-                                .getTrainId()
-                                .equalsIgnoreCase(updatedTrain.getTrainId())
-                )
-                .findFirst();
-
-        if (index.isPresent()) {
-
-            trainList.set(
-                    index.getAsInt(),
-                    updatedTrain
-            );
-
-            saveTrainListToFile();
-
-        } else {
-
-            addTrain(updatedTrain);
-        }
-    }
-
-    private void saveTrainListToFile() {
-
-        try {
-
-            objectMapper.writeValue(
-                    new File(TRAIN_DB_PATH),
-                    trainList
-            );
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-    }
-
-    private boolean validTrain(
-            Train train,
-            String source,
-            String destination
-    ) {
-
-        List<String> stationOrder = train.getStations();
-
-        if (stationOrder == null) {
-            return false;
+            return result;
         }
 
-        int sourceIndex = -1;
-        int destinationIndex = -1;
+        source =
+                source.trim().toLowerCase();
 
-        for (int i = 0; i < stationOrder.size(); i++) {
+        destination =
+                destination.trim().toLowerCase();
 
-            if (stationOrder.get(i).equalsIgnoreCase(source)) {
-                sourceIndex = i;
+        System.out.println(
+                "Searching: " +
+                        source +
+                        " -> " +
+                        destination
+        );
+
+        for (Train train : trainList) {
+
+            if (train == null) {
+                continue;
             }
 
-            if (stationOrder.get(i).equalsIgnoreCase(destination)) {
-                destinationIndex = i;
+            List<String> stations =
+                    train.getStations();
+
+            if (stations == null ||
+                    stations.isEmpty()) {
+
+                continue;
+            }
+
+            int sourceIndex = -1;
+
+            int destinationIndex = -1;
+
+            for (int i = 0;
+                 i < stations.size();
+                 i++) {
+
+                String station =
+                        stations.get(i);
+
+                if (station == null) {
+                    continue;
+                }
+
+                station =
+                        station.trim().toLowerCase();
+
+                if (station.equals(source)) {
+
+                    sourceIndex = i;
+                }
+
+                if (station.equals(destination)) {
+
+                    destinationIndex = i;
+                }
+            }
+
+            System.out.println(
+                    "Train " +
+                            train.getTrainNo() +
+                            " sourceIndex=" +
+                            sourceIndex +
+                            " destinationIndex=" +
+                            destinationIndex
+            );
+
+            // Source must come before destination
+            if (sourceIndex != -1 &&
+                    destinationIndex != -1 &&
+                    sourceIndex < destinationIndex) {
+
+                train.setSource(source);
+
+                train.setDestination(destination);
+
+                result.add(train);
             }
         }
 
-        return sourceIndex != -1
-                && destinationIndex != -1
-                && sourceIndex < destinationIndex;
+        return result;
+    }
+
+    // =========================
+    // ADD / UPDATE TRAIN
+    // =========================
+
+    public void addTrain(
+            Train train) throws IOException {
+
+        if (train == null) {
+            return;
+        }
+
+        boolean found = false;
+
+        for (int i = 0;
+             i < trainList.size();
+             i++) {
+
+            Train existing =
+                    trainList.get(i);
+
+            if (existing != null &&
+                    existing.getTrainNo() != null &&
+                    existing.getTrainNo()
+                            .equals(train.getTrainNo())) {
+
+                trainList.set(i, train);
+
+                found = true;
+
+                break;
+            }
+        }
+
+        if (!found) {
+
+            trainList.add(train);
+        }
+
+        saveTrainList();
+    }
+
+    // =========================
+    // SAVE TRAINS
+    // =========================
+
+    private void saveTrainList()
+            throws IOException {
+
+        File trainFile =
+                new File(TRAIN_DB_PATH);
+
+        if (trainFile.getParentFile() != null) {
+
+            trainFile.getParentFile().mkdirs();
+        }
+
+        objectMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValue(
+                        trainFile,
+                        trainList
+                );
+
+        System.out.println(
+                "Train data saved successfully."
+        );
+    }
+
+    // =========================
+    // GET ALL TRAINS
+    // =========================
+
+    public List<Train> getAllTrains() {
+
+        return new ArrayList<>(
+                trainList
+        );
     }
 }
